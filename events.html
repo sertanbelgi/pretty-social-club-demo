@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Etkinlikler | Pretty Social Club</title>
+<link rel="icon" href="/pretty-social-club-demo/img/logo-circle.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&family=Pinyon+Script&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/pretty-social-club-demo/css/style.css">
+</head>
+<body>
+<header id="site-header"></header>
+<section class="page-hero">
+  <div class="wrap"><span class="eyebrow">Pretty Social Club</span><h1 data-i18n="events.title"></h1><p data-i18n="events.sub"></p></div>
+</section>
+<section class="section" style="padding-top:60px">
+  <div class="wrap">
+    <div class="grid" id="upcoming"><div class="skeleton"></div><div class="skeleton"></div></div>
+    <div id="past-wrap" hidden>
+      <div class="section-head" style="margin:90px 0 36px"><h2 data-i18n="events.past"></h2><div class="divider">♡</div></div>
+      <div class="grid" id="past"></div>
+    </div>
+  </div>
+</section>
+<footer id="site-footer"></footer>
+<script type="module">
+import { boot, api, eventCard, t, reveal } from '/pretty-social-club-demo/js/app.js';
+let data = { upcoming: [], past: [] }, failed = false;
+function render() {
+  const up = document.getElementById('upcoming');
+  up.innerHTML = failed ? `<p class="empty">${t('loading.err')}</p>`
+    : data.upcoming.length ? data.upcoming.map(eventCard).join('') : `<p class="empty">${t('events.none')}</p>`;
+  document.getElementById('past-wrap').hidden = !data.past.length;
+  document.getElementById('past').innerHTML = data.past.map(eventCard).join('');
+  reveal();
+}
+boot(render);
+api('/api/events').then((d) => { data = d; render(); }).catch(() => { failed = true; render(); });
+</script>
+</body>
+</html>

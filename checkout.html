@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Satın Alma | Pretty Social Club</title>
+<link rel="icon" href="/pretty-social-club-demo/img/logo-circle.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&family=Pinyon+Script&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/pretty-social-club-demo/css/style.css">
+</head>
+<body>
+<header id="site-header"></header>
+<main class="wrap" id="main" style="min-height:70vh"><div class="checkout"><div class="skeleton"></div><div class="skeleton"></div></div></main>
+<footer id="site-footer"></footer>
+<script type="module">
+import { boot, api, t, esc, pick, money, fmtDate, fmtTime, img } from '/pretty-social-club-demo/js/app.js';
+
+const q = new URLSearchParams(location.search);
+const slug = q.get('e') || '', pkgId = Number(q.get('p')), qty = Math.min(10, Math.max(1, Number(q.get('q')) || 1));
+let ev = null, pkg = null, failed = false;
+const form = { name: '', email: '', phone: '', terms: false };
+let busy = false, errMsg = '';
+
+function render() {
+  const main = document.getElementById('main');
+  if (failed || !ev || !pkg) {
+    main.innerHTML = `<div style="padding:170px 0;text-align:center"><p>${t(failed ? 'ev.notfound' : 'loading.err')}</p><a class="btn ghost" href="/pretty-social-club-demo/events.html">${t('ev.back')}</a></div>`;
+    return;
+  }
+  const total = pkg.price * qty;
+  main.innerHTML = `
+  <div class="checkout">
+    <form id="f" novalidate>
+      <h1 style="font-size:clamp(2.2rem,4vw,3rem);margin-bottom:24px">${t('co.title')}</h1>
+      <div class="panel">
+        <h3>${t('co.contact')}</h3>
+        <div class="field"><label for="name">${t('co.name')}</label><input id="name" autocomplete="name" required value="${esc(form.name)}"></div>
+        <div class="row2">
+          <div class="field"><label for="email">${t('co.email')}</label><input id="email" type="email" autocomplete="email" required value="${esc(form.email)}"></div>
+          <div class="field"><label for="phone">${t('co.phone')}</label><input id="phone" type="tel" autocomplete="tel" placeholder="05xx xxx xx xx" required value="${esc(form.phone)}"></div>
+        </div>
+        <p style="color:var(--muted);font-size:.9rem;margin:0">${t('co.hint')}</p>
+      </div>
+      <div class="panel">
+        <h3>${t('co.pay')}</h3>
+        <div class="notice">${t('co.demo')}</div>
+        <div class="field"><label>${t('co.card')}</label><input disabled placeholder="•••• •••• •••• ••••"></div>
+        <div class="row2"><div class="field"><label>${t('co.exp')}</label><input disabled placeholder="AA/YY"></div><div class="field"><label>${t('co.cvc')}</label><input disabled placeholder="•••"></div></div>
+      </div>
+      <label class="check"><input type="checkbox" id="terms" ${form.terms ? 'checked' : ''}><span>${t('co.terms')}</span></label>
+      <button class="btn block" id="submit" type="submit" ${busy ? 'disabled' : ''}>${busy ? t('co.processing') : `${t('co.submit')} · ${money(total)}`}</button>
+      <p class="err" id="err" role="alert">${esc(errMsg)}</p>
+    </form>
+    <aside class="panel summary">
+      <h3>${t('co.summary')}</h3>
+      ${img(ev.image, pick(ev, 'title'))}
+      <div class="line"><b style="font-weight:400">${esc(pick(ev, 'title'))}</b></div>
+      <div class="line"><span>${esc(fmtDate(ev.date))}${ev.time_start ? ' · ' + esc(fmtTime(ev)) : ''}</span></div>
+      <div class="line"><span>${esc(pick(pkg, 'name'))} × ${qty}</span><span>${money(total)}</span></div>
+      <div class="line total"><span>${t('co.total')}</span><span>${money(total)}</span></div>
+    </aside>
+  </div>`;
+
+  const f = document.getElementById('f');
+  for (const id of ['name', 'email', 'phone']) document.getElementById(id).addEventListener('input', (e) => { form[id] = e.target.value; });
+  document.getElementById('terms').addEventListener('change', (e) => { form.terms = e.target.checked; });
+  f.addEventListener('submit', submit);
+}
+
+async function submit(e) {
+  e.preventDefault();
+  if (busy) return;
+  errMsg = '';
+  if (!form.terms) { errMsg = t('co.err.terms'); return render(); }
+  busy = true; render();
+  try {
+    const r = await api('/api/orders', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ packageId: pkg.id, qty, name: form.name, email: form.email, phone: form.phone }),
+    });
+    location.href = `/pretty-social-club-demo/ticket.html?o=${encodeURIComponent(r.orderCode)}`;
+  } catch (err) {
+    busy = false; errMsg = err.message && err.message !== 'error' ? err.message : t('co.err.generic'); render();
+  }
+}
+
+boot(render);
+api(`/api/events/${encodeURIComponent(slug)}`)
+  .then((d) => { ev = d; pkg = d.packages.find((p) => p.id === pkgId && p.left >= qty) || null; if (d.past) pkg = null; render(); })
+  .catch(() => { failed = true; render(); });
+</script>
+</body>
+</html>

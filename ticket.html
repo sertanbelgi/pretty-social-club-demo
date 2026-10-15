@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Biletin | Pretty Social Club</title>
+<link rel="icon" href="/pretty-social-club-demo/img/logo-circle.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&family=Pinyon+Script&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/pretty-social-club-demo/css/style.css">
+</head>
+<body>
+<header id="site-header"></header>
+<main class="wrap" id="main" style="min-height:70vh"><div class="success"><div class="skeleton" style="min-height:240px"></div></div></main>
+<footer id="site-footer"></footer>
+<script src="/pretty-social-club-demo/js/vendor/qrcode.min.js"></script>
+<script type="module">
+import { boot, api, t, esc, pick, fmtDate, fmtTime } from '/pretty-social-club-demo/js/app.js';
+
+const code = new URLSearchParams(location.search).get('o') || '';
+let data = null, failed = false;
+
+function qrSvg(text) {
+  const qr = qrcode(0, 'M'); qr.addData(text); qr.make();
+  return qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+}
+
+function render() {
+  const main = document.getElementById('main');
+  if (failed || !data) {
+    main.innerHTML = `<div style="padding:170px 0;text-align:center"><p>${t(failed ? 'tk.notfound' : 'loading.err')}</p><a class="btn ghost" href="/pretty-social-club-demo/events.html">${t('ev.back')}</a></div>`;
+    return;
+  }
+  const { order, event: ev, tickets } = data;
+  document.title = `${pick(ev, 'title')} | Pretty Social Club`;
+  const n = tickets.length;
+  main.innerHTML = `
+    <div class="success">
+      <span class="script">${t('tk.title')}</span>
+      <h1 style="font-size:clamp(2rem,4vw,3rem)">${esc(pick(ev, 'title'))}</h1>
+      <p style="color:var(--muted);margin-top:10px">${esc(fmtDate(ev.date))}${ev.time_start ? ' · ' + esc(fmtTime(ev)) : ''}<br>${esc(pick(ev, 'location'))}</p>
+      <p>${t('tk.sub')}</p>
+    </div>
+    <div class="tickets">
+      ${tickets.map((tk, i) => `
+        <article class="ticket${tk.used_at ? ' used' : ''}">
+          <div class="top"><small>Pretty Social Club</small><h3>${esc(pick(ev, 'title'))}</h3></div>
+          <div class="qr">${qrSvg(tk.code)}</div>
+          <div class="code">${esc(tk.code)}</div>
+          <div class="info">${t('tk.ticket')} ${i + 1}/${n}${tk.used_at ? ' · ' + t('tk.used') : ''}<br>${esc(order.name)}</div>
+        </article>`).join('')}
+    </div>
+    <p style="text-align:center;color:var(--muted);font-size:.9rem">${t('tk.order')}: <b style="font-weight:400;letter-spacing:.12em">${esc(order.code)}</b> · ${esc(pick({ name_tr: order.package_tr, name_en: order.package_en }, 'name'))}</p>
+    <p class="notice no-print" style="max-width:620px;margin:24px auto;text-align:center">${t('tk.note')}</p>
+    <p class="no-print" style="text-align:center;margin-bottom:80px"><button class="btn ghost" onclick="print()">${t('tk.save')}</button></p>`;
+}
+
+boot(render);
+api(`/api/orders/${encodeURIComponent(code)}`).then((d) => { data = d; render(); }).catch(() => { failed = true; render(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pretty Social Club</title>
+<meta name="description" content="Pretty Social Club: pilates, padel, workshop ve brunch etkinlikleri. Biletini online al.">
+<link rel="icon" href="/pretty-social-club-demo/img/logo-circle.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&family=Pinyon+Script&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/pretty-social-club-demo/css/style.css">
+</head>
+<body data-hero="true">
+<header id="site-header"></header>
+
+<section class="hero">
+  <div class="inner wrap">
+    <span class="eyebrow" data-i18n="hero.eyebrow"></span>
+    <h1 data-i18n="hero.title"></h1>
+    <p class="lead" data-i18n="hero.lead"></p>
+    <div class="cta">
+      <a class="btn light" href="/pretty-social-club-demo/events.html" data-i18n="hero.cta1"></a>
+      <a class="btn outline-light" href="#how" data-i18n="hero.cta2"></a>
+    </div>
+  </div>
+  <span class="scroll" data-i18n="hero.scroll"></span>
+</section>
+
+<section class="section" id="upcoming">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow" data-i18n="events.upcoming"></span>
+      <h2 data-i18n="home.upcoming"></h2>
+      <div class="divider">♡</div>
+      <p data-i18n="home.upcoming.sub"></p>
+    </div>
+    <div class="grid" id="upcoming-grid"><div class="skeleton"></div><div class="skeleton"></div></div>
+    <p style="text-align:center;margin-top:40px"><a class="btn ghost" href="/pretty-social-club-demo/events.html" data-i18n="home.all"></a></p>
+  </div>
+</section>
+
+<section class="section tint">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Pretty Social Club</span>
+      <h2 data-i18n="home.exp"></h2>
+      <div class="divider">♡</div>
+      <p data-i18n="home.exp.sub"></p>
+    </div>
+    <div class="exp">
+      <figure class="reveal"><img src="/pretty-social-club-demo/img/pilates-wide.jpg" alt="" loading="lazy"><figcaption data-i18n="exp.pilates"></figcaption></figure>
+      <figure class="reveal"><img src="/pretty-social-club-demo/img/padel-four.jpg" alt="" loading="lazy"><figcaption data-i18n="exp.padel"></figcaption></figure>
+      <figure class="reveal"><img src="/pretty-social-club-demo/img/table-flowers.jpg" alt="" loading="lazy"><figcaption data-i18n="exp.workshop"></figcaption></figure>
+      <figure class="reveal"><img src="/pretty-social-club-demo/img/three-friends.jpg" alt="" loading="lazy"><figcaption data-i18n="exp.social"></figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="how">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow" data-i18n="nav.tickets"></span>
+      <h2 data-i18n="home.how"></h2>
+      <div class="divider">♡</div>
+      <p data-i18n="home.how.sub"></p>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><div class="num">1</div><h3 data-i18n="how.1.t"></h3><p data-i18n="how.1.d"></p></div>
+      <div class="step reveal"><div class="num">2</div><h3 data-i18n="how.2.t"></h3><p data-i18n="how.2.d"></p></div>
+      <div class="step reveal"><div class="num">3</div><h3 data-i18n="how.3.t"></h3><p data-i18n="how.3.d"></p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section tint">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow">Gallery</span>
+      <h2 data-i18n="home.gallery"></h2>
+      <div class="divider">♡</div>
+    </div>
+    <div class="mosaic reveal" id="mosaic"></div>
+    <p style="text-align:center;margin-top:36px"><a class="btn ghost" href="/pretty-social-club-demo/gallery.html" data-i18n="home.gallery.more"></a></p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <div class="cta-band reveal">
+      <h2 data-i18n="ig.title"></h2>
+      <p data-i18n="ig.text"></p>
+      <a class="btn light" href="https://www.instagram.com/prettysocial.club/" target="_blank" rel="noopener" data-i18n="ig.cta"></a>
+    </div>
+  </div>
+</section>
+
+<footer id="site-footer"></footer>
+
+<script type="module">
+import { boot, api, eventCard, getLang, t, reveal, img, pick } from '/pretty-social-club-demo/js/app.js';
+
+let events = [], gallery = [];
+function render() {
+  const grid = document.getElementById('upcoming-grid');
+  if (events === null) { grid.innerHTML = `<p class="empty">${t('loading.err')}</p>`; }
+  else grid.innerHTML = events.length ? events.slice(0, 3).map(eventCard).join('') : `<p class="empty">${t('events.none')}</p>`;
+  document.getElementById('mosaic').innerHTML = gallery.slice(0, 6).map((g) =>
+    `<a href="/pretty-social-club-demo/gallery.html">${img(g.image, pick(g, 'caption'))}</a>`).join('');
+  reveal();
+}
+boot(render);
+api('/api/events').then((d) => { events = d.upcoming; render(); }).catch(() => { events = null; render(); });
+api('/api/gallery').then((d) => { gallery = d; render(); }).catch(() => {});
+</script>
+</body>
+</html>
