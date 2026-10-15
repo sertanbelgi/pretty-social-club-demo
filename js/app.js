@@ -144,7 +144,7 @@ function renderHeader() {
   <header class="site-header ${hero ? 'over-hero' : 'solid'}" id="site-header">
     <div class="wrap bar">
       <a class="brand" href="/pretty-social-club-demo/" aria-label="Pretty Social Club"><img src="/pretty-social-club-demo/img/logo-circle.png" alt=""><span>Pretty Social</span></a>
-      <button class="burger" aria-label="Menu" aria-expanded="false" aria-controls="nav"><span></span><span></span><span></span></button>
+      <div class="actions"><a class="btn bar-cta" href="/pretty-social-club-demo/events.html">${t('nav.tickets')}</a><button class="burger" aria-label="Menu" aria-expanded="false" aria-controls="nav"><span></span><span></span><span></span></button></div>
       <nav class="nav" id="nav">
         ${link('/pretty-social-club-demo/events.html', 'nav.events')}${link('/pretty-social-club-demo/gallery.html', 'nav.gallery')}${link('/pretty-social-club-demo/about.html', 'nav.about')}
         <div class="lang" role="group" aria-label="Language">
